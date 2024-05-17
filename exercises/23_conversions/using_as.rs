@@ -10,11 +10,11 @@
 // Execute `rustlings hint using_as` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
+/// Pour que la division réussisse, il faut que le dénominateur (values.len()) et le numérateur (total) soient tous deux du type f64. Pour cela, il faut convertir values.len() en f64 :
 
 fn average(values: &[f64]) -> f64 {
     let total = values.iter().sum::<f64>();
-    total / values.len()
+    total / values.len() as f64 // Utilisation de `as` pour convertir en `f64`
 }
 
 fn main() {

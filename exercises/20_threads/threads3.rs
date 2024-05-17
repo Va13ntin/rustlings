@@ -3,10 +3,7 @@
 // Execute `rustlings hint threads3` or use the `hint` watch subcommand for a
 // hint.
 
-// I AM NOT DONE
-
 use std::sync::mpsc;
-use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
@@ -26,34 +23,38 @@ impl Queue {
     }
 }
 
-fn send_tx(q: Queue, tx: mpsc::Sender<u32>) -> () {
-    thread::spawn(move || {
+fn send_tx(q: Queue, tx1: mpsc::Sender<u32>, tx2: mpsc::Sender<u32>) -> () {
+    let first_half_thread = thread::spawn(move || {
         for val in q.first_half {
             println!("sending {:?}", val);
-            tx.send(val).unwrap();
+            tx1.send(val).unwrap();
             thread::sleep(Duration::from_secs(1));
         }
     });
 
-    thread::spawn(move || {
+    let second_half_thread = thread::spawn(move || {
         for val in q.second_half {
             println!("sending {:?}", val);
-            tx.send(val).unwrap();
+            tx2.send(val).unwrap();
             thread::sleep(Duration::from_secs(1));
         }
     });
+
+    first_half_thread.join().unwrap();
+    second_half_thread.join().unwrap();
 }
 
 #[test]
 fn main() {
-    let (tx, rx) = mpsc::channel();
+    let (tx1, rx1) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
     let queue = Queue::new();
     let queue_length = queue.length;
 
-    send_tx(queue, tx);
+    send_tx(queue, tx1, tx2);
 
     let mut total_received: u32 = 0;
-    for received in rx {
+    for received in rx1.iter().take(queue_length as usize).chain(rx2.iter().take(queue_length as usize)) {
         println!("Got: {}", received);
         total_received += 1;
     }
